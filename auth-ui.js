@@ -30,7 +30,7 @@ function currentProgressSummary(){
 function profilePicture(){
  const initial=esc(studentAccount.username.slice(0,1).toUpperCase());
  const image=studentAccount.profileImage?`<img src="${esc(studentAccount.profileImage)}" alt="Profile picture for @${esc(studentAccount.username)}">`:initial;
- return `<div class="account-identity${studentAccount.profileImage?' has-picture':''}">${image}</div><div class="profile-picture-actions"><label class="pill outline profile-picture-button">${studentAccount.profileImage?'Change picture':'Add profile picture'}<input id="profile-picture-input" type="file" accept="image/jpeg,image/png,image/webp"></label>${studentAccount.profileImage?'<button class="plain-button" type="button" data-auth-action="remove-avatar">Remove picture</button>':''}<p class="field-help">JPG, PNG, or WebP. Your photo is resized before it is saved.</p></div>`;
+ return `<div class="account-identity${studentAccount.profileImage?' has-picture':''}">${image}</div><div class="profile-picture-actions"><button class="pill outline profile-picture-button" type="button" data-auth-action="choose-avatar">${studentAccount.profileImage?'Change picture':'Add profile picture'}</button><input id="profile-picture-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>${studentAccount.profileImage?'<button class="plain-button" type="button" data-auth-action="remove-avatar">Remove picture</button>':''}<p class="field-help">JPG, PNG, or WebP. Your photo is resized before it is saved.</p></div>`;
 }
 
 function accountPage(){
@@ -92,6 +92,7 @@ document.addEventListener('click',async event=>{
  const modeButton=event.target.closest('[data-auth-mode]');
  if(modeButton){authMode=modeButton.dataset.authMode==='register'?'register':'login';authMessage='';render();document.getElementById('student-username')?.focus();return;}
  const action=event.target.closest('[data-auth-action]');if(!action||authBusy)return;
+ if(action.dataset.authAction==='choose-avatar'){document.getElementById('profile-picture-input')?.click();return;}
  if(action.dataset.authAction==='remove-avatar'){authBusy=true;authMessage='';try{await saveProfilePicture(null);notify('Profile picture removed.');}catch(error){authMessage=error.message;}finally{authBusy=false;if(currentRoute()==='account')render();}return;}
  if(action.dataset.authAction!=='logout')return;
  authBusy=true;authMessage='';render();
