@@ -1,0 +1,13 @@
+{
+  "name": "NCCEE Edge",
+  "short_name": "NCCEE Edge",
+  "description": "Economics and personal finance competition preparation for North Carolina students.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0067a5",
+  "icons": [
+    {"src":"assets/nccee-logo.png","sizes":"any","type":"image/png","purpose":"any"}
+  ]
+}
