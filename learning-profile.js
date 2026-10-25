@@ -1,7 +1,7 @@
 /* Transparent study signals, not a validated proficiency or competition predictor. */
 (function(root){
 'use strict';
-const bank=typeof module!=='undefined'&&module.exports?require('./practice-bank.js'):root.PracticeBank;
+const bank=typeof module!=='undefined'&&module.exports?require('../server/question-bank.cjs'):root.PracticeBank;
 const resources={micro:'production',macro:'business-cycle',trade:'exchange',income:'earning',spending:'spending',saving:'saving',credit:'credit',investing:'investing',risk:'risk'};
 const pilots=['forgone-pay','tradeoff','real-gdp','business-cycle','euros-to-dollars','exchange-change','gross-pay','compensation','budget','spending-choice','compound-saving','purchasing-power','compare-loans','collateral','diversification','total-return','deductible','fraud'];
 const extra={'business-cycle':'Business-cycle patterns',compensation:'Total compensation','spending-choice':'Spending decisions','purchasing-power':'Purchasing power',collateral:'Secured loans',diversification:'Diversification',fraud:'Recognizing fraud'};

@@ -2,11 +2,11 @@
 let profilePending=null;
 function profileEvidence(){return practiceHistory;}
 function seenPracticeIds(){return practiceHistory.flatMap(a=>a.questions.map(q=>q.id)).concat(practiceAttempt?.questions.map(q=>q.id)||[]);}
-function learningAttempt(items,mode,track='all'){
- if(practiceAttempt&&!practiceAttempt.submitted){profilePending={items,mode,track};if(currentRoute()!=='profile')location.hash='profile';else render();document.getElementById('replace-practice')?.focus();return;}
- beginLearning(items,mode,track);
+function learningAttempt(request){
+ if(practiceAttempt&&!practiceAttempt.submitted){profilePending=request;if(currentRoute()!=='profile')location.hash='profile';else render();document.getElementById('replace-practice')?.focus();return;}
+ beginLearning(request);
 }
-function beginLearning(items,mode,track='all'){profilePending=null;practiceAttempt={id:crypto.randomUUID(),mode,track,questions:items,answers:{},index:0,submitted:false};queueProgressSave();location.hash='practice';}
+async function beginLearning(request){profilePending=null;try{const session=await startQuestionSession({...request,seenIds:seenPracticeIds()});practiceAttempt={id:session.id,mode:session.mode,track:session.track,questions:session.questions,answers:{},index:0,submitted:false};queueProgressSave();location.hash='practice';}catch(error){notify(error.message);}}
 function skillRow(s,actions=true){return `<article class="skill-row"><div><p class="meta">${esc(PracticeBank.topics[s.topic])}</p><h3>${esc(s.label)}</h3><p class="skill-status ${s.state}">${esc(s.statusLabel)}</p><p class="fine">${s.recentCount?`${s.correct} of ${s.recentCount} most recent distinct questions correct · ${s.sessions} ${s.sessions===1?'session':'sessions'} in retained history`:'Take the diagnostic to get a first signal.'}${s.total>s.recentCount?` · ${s.total} distinct questions in retained history`:''}</p>${s.trend?`<p class="fine">${esc(s.trend)}</p>`:''}${s.recentCount&&s.questionIds.length===1?'<p class="fine">Only one distinct question is available for this skill; more evidence is needed.</p>':''}</div>${actions?`<div class="skill-actions"><button class="pill outline" data-profile-skill="${s.id}">Practice this skill</button><button class="plain-button" data-profile-resource="${s.resource}">Add review topic to sheet</button>${ext(byId(s.resource).url,'Open lesson','text-link')}</div>`:''}</article>`;}
 function profilePage(){
  const stats=LearningProfile.analyze(profileEvidence()),needs=LearningProfile.priorities(profileEvidence()),checked=stats.filter(s=>s.total).length;
@@ -16,12 +16,12 @@ function profilePage(){
 view.addEventListener('click',e=>{
  const b=e.target.closest('[data-profile],[data-profile-skill],[data-profile-resource]');if(!b)return;
  if(b.dataset.profileResource){setAdded(b.dataset.profileResource,true);location.hash='sheet';return;}
- if(b.dataset.profileSkill){learningAttempt(LearningProfile.review([b.dataset.profileSkill],seenPracticeIds()),'review');return;}
+ if(b.dataset.profileSkill){learningAttempt({mode:'review',track:activeTrack||'all',skillIds:[b.dataset.profileSkill],count:10});return;}
  const action=b.dataset.profile;
- if(action==='diagnostic')learningAttempt(LearningProfile.diagnostic(seenPracticeIds()),'diagnostic');
- if(action==='review'){const ids=LearningProfile.priorities(profileEvidence()).map(s=>s.id);if(ids.length)learningAttempt(LearningProfile.review(ids,seenPracticeIds()),'review');}
+ if(action==='diagnostic')location.hash='diagnostic';
+ if(action==='review'){const ids=LearningProfile.priorities(profileEvidence()).map(s=>s.id);if(ids.length)learningAttempt({mode:'review',track:activeTrack||'all',skillIds:ids,count:10});}
  if(action==='add-topics'){for(const id of new Set(LearningProfile.priorities(profileEvidence()).map(s=>s.resource)))setAdded(id,true);location.hash='sheet';}
- if(action==='replace'&&profilePending)beginLearning(profilePending.items,profilePending.mode,profilePending.track);
+ if(action==='replace'&&profilePending)beginLearning(profilePending);
  if(action==='cancel'){profilePending=null;render();}
 });
 
@@ -40,4 +40,4 @@ function diagnosticPage(){
    : `<button class="pill blue" data-start-diagnostic="${track}">Start ${name} Diagnostic →</button>`;
  return `${header(`${name} Diagnostic`,'Find your starting point before you study.')}<section class="diagnostic-card"><div><p class="eyebrow">${complete?'YOUR MAP IS READY':'START HERE'}</p><h3>${complete?'Keep building from your results.':`${skills.length} questions. A clear next step.`}</h3><p>${complete?'Your diagnostic remains connected to your learning map. Open the map to see every skill tile, choose a concept, and continue practicing.':`One question per available ${name.toLowerCase()} skill. Untimed, saved as you go, and followed by explanations and your personal review plan.`}</p><p class="fine">This is an initial study check, not a validated proficiency test or a full competition exam. ${track==='economics'?'Supply-and-demand graphs and broader economics topics are not assessed yet.':'Case presentations and full competition coverage are not assessed yet.'}</p></div><div class="diagnostic-actions">${actions}<a href="#library?track=${track}" class="text-link">Explore ${name} resources →</a></div></section><details class="profile-details"><summary>What this diagnostic covers</summary><ul>${skills.map(s=>`<li>${esc(s.label)}</li>`).join('')}</ul></details><p class="inline-note"><a href="#overview">Choose a different challenge →</a></p>`;
 }
-view.addEventListener('click',e=>{const button=e.target.closest('[data-start-diagnostic]');if(button){const track=button.dataset.startDiagnostic;if(['economics','finance'].includes(track))learningAttempt(LearningProfile.diagnostic(seenPracticeIds(),Math.random,track),'diagnostic',track);}});
+view.addEventListener('click',e=>{const button=e.target.closest('[data-start-diagnostic]');if(button){const track=button.dataset.startDiagnostic;if(['economics','finance'].includes(track))learningAttempt({mode:'diagnostic',track});}});
