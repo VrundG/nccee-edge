@@ -6,7 +6,7 @@ function renderAccountLink(){
  link.textContent=studentAccount?(studentAccount.region?`@${studentAccount.username}`:'Add your region'):'Sign in or create account';
  link.classList.toggle('signed-in',Boolean(studentAccount));
  link.classList.toggle('needs-region',Boolean(studentAccount&&!studentAccount.region));
- if(['account','regional-reach','editorial-review'].includes(currentRoute()))link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+ if(['account','regional-reach','editorial-review','content-review'].includes(currentRoute()))link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
 }
 
 async function loadStudentSession(){
